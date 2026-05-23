@@ -1,4 +1,4 @@
-名字: 合集新闻推送Kindle
+name: 合集新闻推送Kindle
 
 on:
   schedule:
@@ -11,16 +11,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - 名字: 安装Calibre
+      - name: 安装Calibre
         run: sudo apt-get update && sudo apt-get install -y calibre
 
-      - 名字: 生成并推送合集书籍
+      - name: 生成并推送合集书籍
         env:
           FROM: ${{ secrets.FROM }}
           TO: ${{ secrets.TO }}
           SMTP: ${{ secrets.SMTP }}
           PORT: ${{ secrets.PORT }}
-          私密: ${{ secrets.SECRET }}
+          SECRET: ${{ secrets.SECRET }}
         run: |
           ebook-convert allnews.recipe allnews.epub --output-profile kindle
           
