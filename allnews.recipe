@@ -36,5 +36,5 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         ('BBC中文','https://feedx.net/rss/bbc.xml'),
         ('法广中文','https://feedx.net/rss/rfi.xml'),
         ('联合早报','https://feedx.net/rss/zaobao.xml'),
-        ('纽约时报','https://square-salad-8cee.w2700681.workers.dev'),
+        ('纽约时报','https://raw.githubusercontent.com/644646497/rss/refs/heads/main/feed.xml'),
     ]
