@@ -37,4 +37,5 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         ('法广中文','https://feedx.net/rss/rfi.xml'),
         ('联合早报','https://feedx.net/rss/zaobao.xml'),
         ('纽约时报','https://raw.githubusercontent.com/644646497/rss/refs/heads/main/feed.xml'),
+        ('数字','https://feeds.feedburner.com/chinadigitaltimes/IyPt'),
     ]
