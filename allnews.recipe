@@ -38,5 +38,6 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         ('联合早报','https://feedx.net/rss/zaobao.xml'),
         ('纽约时报','https://raw.githubusercontent.com/644646497/rss/refs/heads/main/feed.xml'),
         ('数字','https://feeds.feedburner.com/chinadigitaltimes/IyPt'),
-        ('观察者网','https://rss.injahow.cn/guancha'),        
+        ('观察者网','https://rss.injahow.cn/guancha'),
+        ('日经新闻','https://feedx.net/rss/nikkei.xml'),
     ]
