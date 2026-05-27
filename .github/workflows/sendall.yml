@@ -2,7 +2,7 @@ name: 合集新闻推送Kindle
 
 on:
   schedule:
-    - cron: '0 13 * * *'
+    - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
