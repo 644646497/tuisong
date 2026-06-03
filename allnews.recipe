@@ -2,20 +2,45 @@ import os
 import time
 import re
 import datetime
+from io import BytesIO
+from PIL import Image, ImageDraw, ImageFont
 from calibre.web.feeds.news import BasicNewsRecipe
-from bs4 import NavigableString
 
 os.environ['TZ'] = 'Asia/Shanghai'
 time.tzset()
 
+# 封面：大字全球新闻合集，下面 年月日_时分 和书名格式保持一致
+def build_cover(title_text, dt_str):
+    width, height = 600,800
+    img = Image.new('RGB', (width,height), color='white')
+    draw = ImageDraw.Draw(img)
+    try:
+        font_big = ImageFont.truetype('simhei.ttf',58)
+        font_small = ImageFont.truetype('simhei.ttf',34)
+    except:
+        font_big = ImageFont.load_default(size=58)
+        font_small = ImageFont.load_default(size=34)
+    draw.text((width//2,height*0.38), title_text, font=font_big, fill='black', anchor='mm')
+    draw.text((width//2,height*0.53), dt_str, font=font_small, fill='black', anchor='mm')
+    buf = BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    return buf
+
+now_dt = datetime.datetime.now()
+# 和书名统一格式：%Y-%m-%d_%H-%M
+date_str = now_dt.strftime('%Y-%m-%d_%H-%M')
+cover_buf = build_cover("全球新闻合集", date_str)
+
 class AdvancedUserRecipeAll(BasicNewsRecipe):
-    title = datetime.datetime.now().strftime('全球新闻合集(%Y-%m-%d_%H-%M)')
+    title = now_dt.strftime('全球新闻合集(%Y-%m-%d_%H-%M)')
     language = 'zh_CN'
     oldest_article = 1
     max_articles_per_feed = 12
 
     no_summaries = True
     use_embedded_content = True
+    cover_url = lambda:self, _:cover_buf
 
     remove_tags = [
         dict(name='hr'),
@@ -31,7 +56,6 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         pub_date = article.pubdate.strftime('%b %d') if hasattr(article, 'pubdate') else ''
         full_date = article.pubdate.strftime('%Y-%m-%dT%H:%M:%S.000Z') if hasattr(article, 'pubdate') else ''
 
-        # 完全复刻你截图格式：来源→简写日期→作者→标准时间，无多余前缀
         head_text = (
             f"{source_name}\n"
             f"{pub_date}\n\n"
