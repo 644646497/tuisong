@@ -2,12 +2,14 @@ import os
 import time
 import re
 import datetime
+from calibre.web.feeds.news import BasicNewsRecipe
+from bs4 import NavigableString
 
 os.environ['TZ'] = 'Asia/Shanghai'
 time.tzset()
 
 class AdvancedUserRecipeAll(BasicNewsRecipe):
-    title = datetime.datetime.now().strftime('全球新闻合集 - %Y-%m-%d')
+    title = datetime.datetime.now().strftime('全球新闻合集(%Y-%m-%d_%H-%M)')
     language = 'zh_CN'
     oldest_article = 1
     max_articles_per_feed = 12
@@ -21,6 +23,23 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         dict(name='script'),
         dict(name='style'),
     ]
+
+    def parse_article(self, article):
+        raw_html = super().parse_article(article)
+        source_name = article.feed.title if hasattr(article.feed, 'title') else ''
+        author_name = article.author if hasattr(article, 'author') and article.author else ''
+        pub_date = article.pubdate.strftime('%b %d') if hasattr(article, 'pubdate') else ''
+        full_date = article.pubdate.strftime('%Y-%m-%dT%H:%M:%S.000Z') if hasattr(article, 'pubdate') else ''
+
+        # 完全复刻你截图格式：来源→简写日期→作者→标准时间，无多余前缀
+        head_text = (
+            f"{source_name}\n"
+            f"{pub_date}\n\n"
+            f"{author_name}\n"
+            f"{full_date}\n\n"
+        )
+        final_html = f"<p>{head_text}</p>" + raw_html
+        return final_html
 
     def preprocess_html(self, soup):
         for a in soup.find_all('a'):
