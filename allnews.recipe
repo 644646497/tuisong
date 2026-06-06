@@ -105,4 +105,5 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         ('数字','https://feeds.feedburner.com/chinadigitaltimes/IyPt'),
         ('观察者网','https://rss.injahow.cn/guancha'),
         ('日经新闻','https://feedx.net/rss/nikkei.xml'),
+        ('科技新报','https://technews.tw/tn-rss/'),
     ]
