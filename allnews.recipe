@@ -17,7 +17,6 @@ def ensure_chinese_font():
     font_path = "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"
     if not os.path.exists(font_path):
         print(">>> 正在安装中文字体库...")
-        # 更新源并安装 Noto CJK 字体
         subprocess.run(["sudo", "apt-get", "update"], check=True, capture_output=True)
         subprocess.run(["sudo", "apt-get", "install", "-y", "fonts-noto-cjk"], check=True, capture_output=True)
         print(">>> 字体安装完成。")
@@ -43,7 +42,6 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
 
     def get_cover_url(self):
         now_dt = datetime.datetime.now()
-        # 格式化为：2026-06-04 15:30:25
         date_str = now_dt.strftime('%Y-%m-%d %H:%M:%S')
 
         width, height = 600, 800
@@ -51,19 +49,14 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         draw = ImageDraw.Draw(img)
 
         try:
-            # 使用刚才安装的 Noto Sans CJK 字体
             font_big = ImageFont.truetype(FONT_PATH, 60)
             font_small = ImageFont.truetype(FONT_PATH, 36)
         except Exception as e:
             print(f"字体加载失败: {e}")
-            # 如果还是失败，回退到默认字体（但这会导致中文乱码，所以必须确保上面安装成功）
             font_big = ImageFont.load_default()
             font_small = ImageFont.load_default()
 
-        # 绘制标题
         draw.text((width//2, height * 0.40), "全球新闻合集", font=font_big, fill='black', anchor='mm')
-
-        # 绘制日期时间
         draw.text((width//2, height * 0.55), date_str, font=font_small, fill='black', anchor='mm')
 
         buf = BytesIO()
@@ -72,20 +65,31 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         return buf
 
     def parse_article(self, article):
-        raw_html = super().parse_article(article)
+        """抓取正文，失败时回退到 RSS 摘要"""
+        try:
+            raw_html = super().parse_article(article)
+            if raw_html and len(raw_html.strip()) > 100:
+                return self._add_headers(article, raw_html)
+            else:
+                raise Exception("抓取的正文过短")
+        except Exception as e:
+            print(f'全文抓取失败 ({getattr(article, "title", "未知标题")}): {e}')
+            summary = getattr(article, 'summary', '')
+            if summary:
+                raw_html = f'<p>【摘要模式】未抓到全文，此为RSS摘要：</p>{summary}'
+                return self._add_headers(article, raw_html)
+            else:
+                return '<p>本文无法获取内容，请点链接查看原文。</p>'
+
+    def _add_headers(self, article, content):
+        """添加来源、日期等头部信息"""
         source_name = article.feed.title if hasattr(article.feed, 'title') else ''
         author_name = article.author if hasattr(article, 'author') and article.author else ''
         pub_date = article.pubdate.strftime('%b %d') if hasattr(article, 'pubdate') else ''
         full_date = article.pubdate.strftime('%Y-%m-%dT%H:%M:%S.000Z') if hasattr(article, 'pubdate') else ''
 
-        head_text = (
-            f"{source_name}\n"
-            f"{pub_date}\n\n"
-            f"{author_name}\n"
-            f"{full_date}\n\n"
-        )
-        final_html = f"<p>{head_text}</p>" + raw_html
-        return final_html
+        head_text = f"<p>{source_name}<br/>{pub_date}<br/>{author_name}<br/>{full_date}<br/></p>"
+        return head_text + content
 
     def preprocess_html(self, soup):
         for a in soup.find_all('a'):
@@ -97,12 +101,12 @@ class AdvancedUserRecipeAll(BasicNewsRecipe):
         return soup
 
     feeds = [
-        ('德国之声','https://feedx.net/rss/dw.xml'),
-        ('BBC中文','https://feedx.net/rss/bbc.xml'),
-        ('法广中文','https://feedx.net/rss/rfi.xml'),
-        ('联合早报','https://feedx.net/rss/zaobao.xml'),
-        ('纽约时报','https://raw.githubusercontent.com/644646497/rss/refs/heads/main/feed.xml'),
-        ('数字','https://feeds.feedburner.com/chinadigitaltimes/IyPt'),
-        ('观察者网','https://rss.injahow.cn/guancha'),
-        ('日经新闻','https://rijingmute-cell-ba44.w2700681.workers.dev/'),
+        ('德国之声', 'https://feedx.net/rss/dw.xml'),
+        ('BBC中文', 'https://feedx.net/rss/bbc.xml'),
+        ('法广中文', 'https://feedx.net/rss/rfi.xml'),
+        ('联合早报', 'https://feedx.net/rss/zaobao.xml'),
+        ('纽约时报', 'https://raw.githubusercontent.com/644646497/rss/refs/heads/main/feed.xml'),
+        ('数字', 'https://feeds.feedburner.com/chinadigitaltimes/IyPt'),
+        ('观察者网', 'https://rss.injahow.cn/guancha'),
+        ('日经新闻', 'https://rijingmute-cell-ba44.w2700681.workers.dev/'),
     ]
